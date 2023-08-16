@@ -1,0 +1,1 @@
+A small wrapper script around pipenv to allow activation and management of environments from anywhere, not just from the directory containing the Pipfile for the environment. Conda-like usability with pure pip packages. Heavy Work in Progress
