@@ -71,10 +71,7 @@ def is_pipenv_venv_active():
     """
     Return whether a pipenv environment is currently active. Basically just returns the PIPENV_ACTIVE environment variable
     """
-    active = os.getenv("PIPENV_ACTIVE")
-    if active == "1":
-        return True
-    return False
+    return os.getenv("PIPENV_ACTIVE") == 1
 
 
 def cd_to_env_dir(envname: str = ""):
