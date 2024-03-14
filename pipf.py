@@ -12,6 +12,7 @@ from typing import Iterator
 import pexpect
 from contextlib import contextmanager
 
+# the pipenv env is inside the project, not the central env location
 if os.getenv("PIPENV_VENV_IN_PROJECT"):
     print(
         "You have set the PIPENV_VENV_IN_PROJECT variable, so pipf can't find the environment locations. This is currently not supported"
@@ -19,7 +20,7 @@ if os.getenv("PIPENV_VENV_IN_PROJECT"):
     exit()
 
 
-# taken straight from vistir's implementation
+# taken straight from vistir's implementation. Restores all env vars after the context manager is closed
 @contextmanager
 def temp_environ():
     # type: () -> Iterator[None]
