@@ -83,6 +83,7 @@ def cd_to_env_dir(envname: str = ""):
     os.chdir(env_dir)
 
 
+#TODO change to click 
 parser = argparse.ArgumentParser(
     description="Wrapper around pipenv that allows for conda-like activation and management of envs from anywhere, not just the env of the current directory."
 )
@@ -91,8 +92,7 @@ parser.add_argument(
     "-n",
     help="which env to use. The names of the envs must be unique!",
     required=False,
-)  # TODO Currently still unique
-# TODO rework this dirty hack with nargs='+'
+) 
 parser.add_argument(
     "command",
     help="command to forward to pipenv. See pipenv --help for options.",
