@@ -155,7 +155,4 @@ if not in_correct_dir:
 else:
     subprocess.run(cmd)
 
-# test = subprocess.run(CMD.split(), stdout=subprocess.PIPE)
-# print(test.stdout.decode())
-
 # TODO: PR to pipenv with correct link in environment variables setting (pipenv --env)
