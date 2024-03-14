@@ -7,13 +7,17 @@ import sys
 import warnings
 from pathlib import Path
 from shutil import get_terminal_size
+from typing import Iterator
 
 import pexpect
 from contextlib import contextmanager
 
-if os.getenv('PIPENV_VENV_IN_PROJECT'):
-    print("You have set the PIPENV_VENV_IN_PROJECT variable, so pipf can't find the environment locations. This is currently not supported")
+if os.getenv("PIPENV_VENV_IN_PROJECT"):
+    print(
+        "You have set the PIPENV_VENV_IN_PROJECT variable, so pipf can't find the environment locations. This is currently not supported"
+    )
     exit()
+
 
 # taken straight from vistir's implementation
 @contextmanager
@@ -27,19 +31,20 @@ def temp_environ():
         os.environ.clear()
         os.environ.update(environ)
 
+
 def get_env_dir(envname: str = ""):
     """
     find and return the absolute path of the virtualenv location matching the given envname (.local/share/virtualenvs/...)
     """
     if not envname:
-        env_path = os.getenv('VIRTUAL_ENV')
+        env_path = os.getenv("VIRTUAL_ENV")
     else:
-        environments_root = os.getenv('WORKON_HOME')
+        environments_root = os.getenv("WORKON_HOME")
         if not environments_root:
             environments_root = "~/.local/share/virtualenvs"
 
         root_path = Path(environments_root).expanduser()
-        env_path = list(root_path.glob(envname+"*"))
+        env_path = list(root_path.glob(envname + "*"))
         if len(env_path) > 1:
             # TODO implement for different envs with same name. This can happen with default pipenv
             print("More than one Env of the same name. Not currently supported.")
@@ -56,7 +61,7 @@ def get_working_dir(envname: str = ""):
     env_path = get_env_dir(envname)
 
     # TODO ensure this file exists. MAybe pipenv has some weird cases
-    with open(env_path / '.project') as projfile:
+    with open(env_path / ".project") as projfile:
         working_dir = projfile.readline()
     return working_dir
 
@@ -65,8 +70,8 @@ def is_pipenv_venv_active():
     """
     Return whether a pipenv environment is currently active. Basically just returns the PIPENV_ACTIVE environment variable
     """
-    active = os.getenv('PIPENV_ACTIVE')
-    if active == '1':
+    active = os.getenv("PIPENV_ACTIVE")
+    if active == "1":
         return True
     return False
 
@@ -81,39 +86,51 @@ def cd_to_env_dir(envname: str = ""):
 
 
 parser = argparse.ArgumentParser(
-    description='Wrapper around pipenv that allows for conda-like activation and management of envs from anywhere, not just the env of the current directory.')
-parser.add_argument('--name', '-n', help='which env to use. The names of the envs must be unique!',
-                    required=False)  # TODO Currently still unique
+    description="Wrapper around pipenv that allows for conda-like activation and management of envs from anywhere, not just the env of the current directory."
+)
+parser.add_argument(
+    "--name",
+    "-n",
+    help="which env to use. The names of the envs must be unique!",
+    required=False,
+)  # TODO Currently still unique
 # TODO rework this dirty hack with nargs='+'
 parser.add_argument(
-    'command', help="command to forward to pipenv. See pipenv --help for options.", nargs='+')
+    "command",
+    help="command to forward to pipenv. See pipenv --help for options.",
+    nargs="+",
+)
 
 args = parser.parse_args()
 
 
 in_correct_dir = False
 if not is_pipenv_venv_active() and not args.name:
-    cwd = Path('.').absolute()
-    if (cwd / 'Pipfile').exists():
+    cwd = Path(".").absolute()
+    if (cwd / "Pipfile").exists():
         warnings.warn(
-            'Not in a venv and no name supplied. Found a Pipfile in current dir, using this environment')
+            "Not in a venv and no name supplied. Found a Pipfile in current dir, using this environment"
+        )
         in_correct_dir = True
     else:
         raise EnvironmentError(
-            'Not in a venv and no name supplied. Found no Pipfile in current dir, cannot identify which venv to use')
+            "Not in a venv and no name supplied. Found no Pipfile in current dir, cannot identify which venv to use"
+        )
 
 
 # pipenv cds into the environment's working directory, so we overwrite the shell command
-if args.command[0] == 'shell' and args.name:
-    os.environ['PIPENV_ACTIVE'] = '1'
-    os.environ.pop("PIP_SHIMS_BASE_MODULE", None) # straight from pipenv code, no idea what this does
+if args.command[0] == "shell" and args.name:
+    os.environ["PIPENV_ACTIVE"] = "1"
+    os.environ.pop(
+        "PIP_SHIMS_BASE_MODULE", None
+    )  # straight from pipenv code, no idea what this does
 
     # this code to launch the subshell is taken directly from pipenv's fork_compat
     dims = get_terminal_size()
 
     with temp_environ():
-        envshell = pexpect.spawn(os.getenv('SHELL'), ["-i"])
-        envshell.sendline('source ' + str(get_env_dir(args.name)) + '/bin/activate')
+        envshell = pexpect.spawn(os.getenv("SHELL"), ["-i"])
+        envshell.sendline("source " + str(get_env_dir(args.name)) + "/bin/activate")
         # Handler for terminal resizing events
         # Must be defined here to have the shell process in its context, since
         # we can't pass it as an argument
@@ -129,7 +146,7 @@ if args.command[0] == 'shell' and args.name:
         sys.exit(envshell.exitstatus)
 
 else:
-    cmd = ['pipenv']
+    cmd = ["pipenv"]
     cmd.extend(args.command)
 
 if not in_correct_dir:
@@ -140,4 +157,4 @@ else:
 # test = subprocess.run(CMD.split(), stdout=subprocess.PIPE)
 # print(test.stdout.decode())
 
-#TODO: PR to pipenv with correct link in environment variables setting (pipenv --env)
+# TODO: PR to pipenv with correct link in environment variables setting (pipenv --env)
